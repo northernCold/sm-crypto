@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+<script src="../dist/sm2.js"></script>
+<script>
+var keypair = sm2.generateKeyPairHex()
+var msgString = "1231231sdfasdfa#23@@";
+publicKey = keypair.publicKey // 公钥
+privateKey = keypair.privateKey // 私钥
+
+var cipherMode = 1 // 1 - C1C3C2，0 - C1C2C3，默认为1
+
+var encryptData = sm2.doEncrypt(msgString, publicKey, cipherMode) // 加密结果
+var decryptData = sm2.doDecrypt(encryptData, privateKey, cipherMode) // 解密结果
+console.log(encryptData);
+console.log(decryptData);
+
+var msg = "1231231dsfa7y*(&*%&*^&*(&#*(&U"
+var sigValueHex = sm2.doSignature(msg, privateKey) // 签名
+var verifyResult = sm2.doVerifySignature(msg, sigValueHex, publicKey) // 验签结果
+
+// 纯签名
+var sigValueHex2 = sm2.doSignature(msg, privateKey, {
+    pointPool: [sm2.getPoint(), sm2.getPoint(), sm2.getPoint(), sm2.getPoint()], // 传入事先已生成好的椭圆曲线点，可加快签名速度
+}) // 签名
+var verifyResult2 = sm2.doVerifySignature(msg, sigValueHex2, publicKey) // 验签结果
+
+// 纯签名 + 生成椭圆曲线点 + der编解码
+var sigValueHex3 = sm2.doSignature(msg, privateKey, {
+    der: true,
+}) // 签名
+var verifyResult3 = sm2.doVerifySignature(msg, sigValueHex3, publicKey, {
+    der: true,
+}) // 验签结果
+
+// 纯签名 + 生成椭圆曲线点 + sm3杂凑
+var sigValueHex4 = sm2.doSignature(msg, privateKey, {
+    hash: true,
+}) // 签名
+var verifyResult4 = sm2.doVerifySignature(msg, sigValueHex4, publicKey, {
+    hash: true,
+}) // 验签结果
+
+// 纯签名 + 生成椭圆曲线点 + sm3杂凑（不做公钥推导）
+var sigValueHex5 = sm2.doSignature(msg, privateKey, {
+    hash: true,
+    publicKey: publicKey, // 传入公钥的话，可以去掉sm3杂凑中推导公钥的过程，速度会比纯签名 + 生成椭圆曲线点 + sm3杂凑快
+})
+var verifyResult5 = sm2.doVerifySignature(msg, sigValueHex5, publicKey, {
+    hash: true,
+    publicKey: publicKey,
+})
+
+// 纯签名 + 生成椭圆曲线点 + sm3杂凑 + 不做公钥推 + 添加 userId（长度小于 8192）
+// 默认 userId 值为 1234567812345678
+var sigValueHex6 = sm2.doSignature(msgString, privateKey, {
+    hash: true,
+    publicKey: publicKey,
+    userId: 'testUserId',
+})
+var verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
+    hash: true,
+    userId: 'testUserId',
+})
+</script>
+</body>
+</html>

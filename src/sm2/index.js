@@ -1,3 +1,6 @@
+require('core-js/es/object/define-property')
+require('core-js/es/object/create')
+require('core-js/es/array/is-array')
 /* eslint-disable no-use-before-define */
 const {BigInteger} = require('jsbn')
 const {encodeDer, decodeDer} = require('./asn1')
