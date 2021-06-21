@@ -1,13 +1,18 @@
 {
-  "name": "sm-crypto",
+  "name": "sm-crypto-ie8",
   "version": "0.3.0",
   "description": "sm-crypto",
-  "main": "src/index.js",
+  "main": "src/sm-crypto-ie8.js",
   "scripts": {
     "prepublish": "npm run build",
     "test": "jest ./test/*",
     "lint": "eslint \"src/**/*.js\" --fix",
-    "build": "npm run lint && webpack"
+    "build": "npm run build:pkg && npm run build:subpkg",
+    "build:pkg": "npm run lint && webpack",
+    "build:subpkg": "npm run build:sm2 && npm run build:sm3 && npm run build:sm4",
+    "build:sm2": "npm run lint && cross-env CIPHER=sm2 webpack",
+    "build:sm3": "npm run lint && cross-env CIPHER=sm3 webpack",
+    "build:sm4": "npm run lint && cross-env CIPHER=sm4 webpack"
   },
   "repository": {
     "type": "git",

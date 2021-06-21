@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script src="../dist/sm-crypto-ie8.js"></script>
+  <script>
+  var sm2 = window['sm-crypto-ie8'].sm2;
+  var sm3 = window['sm-crypto-ie8'].sm3;
+  var sm4 = window['sm-crypto-ie8'].sm4;
+  console.log("-------sm2--------");
+  (function sm2Module() {
+    var keypair = sm2.generateKeyPairHex()
+    var msgString = "1231231sdfasdfa#23@@";
+    publicKey = keypair.publicKey // 公钥
+    privateKey = keypair.privateKey // 私钥
+
+    var cipherMode = 1 // 1 - C1C3C2，0 - C1C2C3，默认为1
+
+    var encryptData = sm2.doEncrypt(msgString, publicKey, cipherMode) // 加密结果
+    var decryptData = sm2.doDecrypt(encryptData, privateKey, cipherMode) // 解密结果
+    console.log(encryptData);
+    console.log(decryptData);
+
+    var msg = "1231231dsfa7y*(&*%&*^&*(&#*(&U"
+    var sigValueHex = sm2.doSignature(msg, privateKey) // 签名
+    var verifyResult = sm2.doVerifySignature(msg, sigValueHex, publicKey) // 验签结果
+
+    // 纯签名
+    var sigValueHex2 = sm2.doSignature(msg, privateKey, {
+        pointPool: [sm2.getPoint(), sm2.getPoint(), sm2.getPoint(), sm2.getPoint()], // 传入事先已生成好的椭圆曲线点，可加快签名速度
+    }) // 签名
+    var verifyResult2 = sm2.doVerifySignature(msg, sigValueHex2, publicKey) // 验签结果
+
+    // 纯签名 + 生成椭圆曲线点 + der编解码
+    var sigValueHex3 = sm2.doSignature(msg, privateKey, {
+        der: true,
+    }) // 签名
+    var verifyResult3 = sm2.doVerifySignature(msg, sigValueHex3, publicKey, {
+        der: true,
+    }) // 验签结果
+
+    // 纯签名 + 生成椭圆曲线点 + sm3杂凑
+    var sigValueHex4 = sm2.doSignature(msg, privateKey, {
+        hash: true,
+    }) // 签名
+    var verifyResult4 = sm2.doVerifySignature(msg, sigValueHex4, publicKey, {
+        hash: true,
+    }) // 验签结果
+
+    // 纯签名 + 生成椭圆曲线点 + sm3杂凑（不做公钥推导）
+    var sigValueHex5 = sm2.doSignature(msg, privateKey, {
+        hash: true,
+        publicKey: publicKey, // 传入公钥的话，可以去掉sm3杂凑中推导公钥的过程，速度会比纯签名 + 生成椭圆曲线点 + sm3杂凑快
+    })
+    var verifyResult5 = sm2.doVerifySignature(msg, sigValueHex5, publicKey, {
+        hash: true,
+        publicKey: publicKey,
+    })
+
+    // 纯签名 + 生成椭圆曲线点 + sm3杂凑 + 不做公钥推 + 添加 userId（长度小于 8192）
+    // 默认 userId 值为 1234567812345678
+    var sigValueHex6 = sm2.doSignature(msgString, privateKey, {
+        hash: true,
+        publicKey: publicKey,
+        userId: 'testUserId',
+    })
+    var verifyResult6 = sm2.doVerifySignature(msgString, sigValueHex6, publicKey, {
+        hash: true,
+        userId: 'testUserId',
+    })
+  })();
+  
+  console.log("-------sm3--------");
+  (function sm3Module() {
+    var hashData = sm3('abc') // 杂凑
+      console.log(hashData);
+    })();
+  console.log("-------sm4--------");
+    
+  (function sm4Module() {
+    var msg = 'hello world! 我是 juneandgreen.' // 可以为 utf8 串或字节数组
+    var key = '0123456789abcdeffedcba9876543210' // 可以为 16 进制串或字节数组，要求为 128 比特
+
+    var encryptData = sm4.encrypt(msg, key) // 加密，默认输出 16 进制字符串，默认使用 pkcs#5 填充
+    console.log(encryptData)
+    var encryptData = sm4.encrypt(msg, key, {padding: 'none'}) // 加密，不使用 padding
+    console.log(encryptData)
+    var encryptData = sm4.encrypt(msg, key, {padding: 'none', output: 'array'}) // 加密，不使用 padding，输出为字节数组
+    console.log(encryptData)
+    var encryptData = sm4.encrypt(msg, key, {mode: 'cbc', iv: 'fedcba98765432100123456789abcdef'}) // 加密，cbc 模式
+    console.log(encryptData)
+
+    var encryptData = '0e395deb10f6e8a17e17823e1fd9bd98a1bff1df508b5b8a1efb79ec633d1bb129432ac1b74972dbe97bab04f024e89c' // 可以为 16 进制串或字节数组
+    var key = '0123456789abcdeffedcba9876543210' // 可以为 16 进制串或字节数组，要求为 128 比特
+
+    var decryptData = sm4.decrypt(encryptData, key) // 解密，默认输出 utf8 字符串，默认使用 pkcs#5 填充
+    console.log(decryptData, decryptData.length)
+    var decryptData = sm4.decrypt(encryptData, key, {padding: 'none'}) // 解密，不使用 padding
+    console.log(decryptData, decryptData.length)
+    var decryptData = sm4.decrypt(encryptData, key, {padding: 'none', output: 'array'}) // 解密，不使用 padding，输出为字节数组
+    console.log(decryptData)
+    var decryptData = sm4.decrypt(encryptData, key, {mode: 'cbc', iv: 'fedcba98765432100123456789abcdef'}) // 解密，cbc 模式
+    console.log(decryptData)
+  })();
+  </script>
+</body>
+</html>
